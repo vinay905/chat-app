@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Application</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <div class="chat-container">
+    <div id="chat-window">
+      <div id="output"></div>
+    </div>
+    <input id="message" type="text" placeholder="Type a message...">
+    <button id="send">Send</button>
+  </div>
+  
+</body>
+</html>
+<script>
+
+
+
+
+
+
+
+
+const ws = new WebSocket('ws://localhost:7070');
+
+const messageInput = document.getElementById('message');
+const sendButton = document.getElementById('send');
+const chatWindow = document.getElementById('chat-window');
+const output = document.getElementById('output');
+
+const sender = prompt('Enter your name:');
+
+ws.onopen = () => {
+  console.log('Connected to WebSocket server');
+};
+
+ws.onmessage = (event) => {
+  const messageData = JSON.parse(event.data);
+  const message = document.createElement('div');
+  message.classList.add('message');
+  if (messageData.sender === sender) {
+    message.classList.add('my-message');
+  } else {
+    message.classList.add('other-message');
+  }
+  message.textContent = `${messageData.sender}: ${messageData.message}`;
+  output.appendChild(message);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+};
+
+sendButton.addEventListener('click', () => {
+  const message = messageInput.value;
+  const messageData = {
+    sender: sender,
+    message: message
+  };
+  ws.send(JSON.stringify(messageData));
+  messageInput.value = '';
+});
+
+messageInput.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    sendButton.click();
+  }
+});
+
+
+window.addEventListener('beforeunload', function (e) {
+            // Prevent the default action of the event
+            e.preventDefault();
+            // Set a returnValue property on the event to show a confirmation dialog
+            e.returnValue = 'Are you sure you want to leave this page? All the messages will be Deleted !';
+        });
+
+</script>
